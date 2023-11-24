@@ -82,83 +82,66 @@ public class Player : Subject, IObserver
 
         groundedPlayer = controller.isGrounded;
         Debug.Log("grundedLayer : " + groundedPlayer);
-        if (groundedPlayer && playerVelocity.y < 0)
-        {
-            playerVelocity.y = 0f;
-        }
-
         
-        //if (groundedPlayer)
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
-           // moveX = Input.GetAxis("Horizontal") * dodgeSpeed;
-            //moveX = Mathf.Clamp(Input.GetAxis("Horizontal") * dodgeSpeed, -maxXValue, maxXValue);
-
-            //Debug.Log("Move Input : "+moveX);
-            //Debug.Log("Touch COunt : "+Input.touchCount);
-            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-            {
-                _startTouchPosition = Input.GetTouch(0).position;
-            }
-
-            if(Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
-            {
-                _endTouchPosition = Input.GetTouch(0).position;
-                if (_endTouchPosition.x < _startTouchPosition.x)
-                {
-                    moveX = -1 * dodgeSpeed;
-                    
-                }
-                else if (_endTouchPosition.x > _startTouchPosition.x)
-                {
-                    
-                    moveX = 1 * dodgeSpeed;
-                }
-            }
-
-            /* if(Input.GetMouseButton(0))
-             {
-                 float center = Screen.width / 2;
-                 float xPos = (Input.mousePosition.x - center) / center;
-                 moveX = Mathf.Clamp(xPos * dodgeSpeed, -dodgeSpeed, dodgeSpeed);
-             }*/
-
-
-
-            _swipeLeft = Input.GetKeyDown(KeyCode.LeftArrow);
-            _swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
-            _swipeUp = Input.GetKeyDown(KeyCode.UpArrow);
-            _swipeDown = Input.GetKeyDown(KeyCode.DownArrow);
-
-            if (_swipeLeft && !InRoll)
-            {
-                if(_side == Side.Mid)
-                {
-                    newXPos = -xValue;
-                    _side = Side.Left;
-                }
-                else if(_side == Side.Right)
-                {
-                    newXPos = 0;
-                    _side = Side.Mid;
-                }
-            }
-            else if(_swipeRight && !InRoll)
-            {
-                if(_side == Side.Mid)
-                {
-                    newXPos = xValue;
-                    _side = Side.Right;
-                }
-                else if(_side == Side.Left)
-                {
-                    newXPos = 0;
-                    _side = Side.Mid;
-                }
-            }
-            moveVector = new Vector3(moveX - transform.position.x, moveY * Time.deltaTime, playerSpeed * Time.deltaTime);
-            moveX = Mathf.Lerp(moveX, newXPos, dodgeSpeed * Time.deltaTime) ;
-            
+            _startTouchPosition = Input.GetTouch(0).position;
         }
+
+        if(Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+        {
+            _endTouchPosition = Input.GetTouch(0).position;
+            if (_endTouchPosition.x < _startTouchPosition.x)
+                _swipeLeft = true;
+            else if (_endTouchPosition.x > _startTouchPosition.x)
+                _swipeRight = true;
+
+            if (_endTouchPosition.y > _startTouchPosition.y)
+                _swipeUp = true;
+            if (_endTouchPosition.y < _startTouchPosition.y)
+                _swipeDown = true;
+        }
+
+        /* if(Input.GetMouseButton(0))
+            {
+                float center = Screen.width / 2;
+                float xPos = (Input.mousePosition.x - center) / center;
+                moveX = Mathf.Clamp(xPos * dodgeSpeed, -dodgeSpeed, dodgeSpeed);
+            }*/
+
+        _swipeLeft = Input.GetKeyDown(KeyCode.LeftArrow);
+        _swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
+        _swipeUp = Input.GetKeyDown(KeyCode.UpArrow);
+        _swipeDown = Input.GetKeyDown(KeyCode.DownArrow);
+
+        if (_swipeLeft && !InRoll)
+        {
+            if(_side == Side.Mid)
+            {
+                newXPos = -xValue;
+                _side = Side.Left;
+            }
+            else if(_side == Side.Right)
+            {
+                newXPos = 0;
+                _side = Side.Mid;
+            }
+        }
+        else if(_swipeRight && !InRoll)
+        {
+            if(_side == Side.Mid)
+            {
+                newXPos = xValue;
+                _side = Side.Right;
+            }
+            else if(_side == Side.Left)
+            {
+                newXPos = 0;
+                _side = Side.Mid;
+            }
+        }
+        moveVector = new Vector3(moveX - transform.position.x, moveY * Time.deltaTime, playerSpeed * Time.deltaTime);
+        moveX = Mathf.Lerp(moveX, newXPos, dodgeSpeed * Time.deltaTime) ;
 
         controller.Move(moveVector);
         Jump();

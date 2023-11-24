@@ -12,7 +12,9 @@ public class Track : MonoBehaviour, IObserver
     [SerializeField] private List<Collectible> collectibles;
     [SerializeField] private List<Obstacle> obstacles;
     [SerializeField] private GameObject collectibleCollectEffect;
-    [SerializeField] private GameObject ObstacleBlastEffect;
+    [SerializeField] private GameObject redObstacleBlastEffect;
+    [SerializeField] private GameObject greenObstacleBlastEffect;
+    [SerializeField] private GameObject blueObstacleBlastEffect;
 
     public int TrackId => trackId;
 
@@ -25,7 +27,9 @@ public class Track : MonoBehaviour, IObserver
         collectibles.ForEach(collectible => collectible.ResetData());
         obstacles.ForEach(obstacle => obstacle.ResetData());
         StartCoroutine(ResetEffect(collectibleCollectEffect, 0f));
-        StartCoroutine(ResetEffect(ObstacleBlastEffect, 0f));
+        StartCoroutine(ResetEffect(redObstacleBlastEffect, 0f));
+        StartCoroutine(ResetEffect(greenObstacleBlastEffect, 0f));
+        StartCoroutine(ResetEffect(blueObstacleBlastEffect, 0f));
     }
 
     public void Notify(GameData data)
@@ -40,9 +44,16 @@ public class Track : MonoBehaviour, IObserver
         }
         else if (data is ObstacleData obstacleData)
         {
-            ObstacleBlastEffect.transform.position = obstacleData.Position;
-            ObstacleBlastEffect.SetActive(true);
-            StartCoroutine(ResetEffect(ObstacleBlastEffect, 0.5f));
+            GameObject obj = redObstacleBlastEffect;
+
+            if (obstacleData.Type == CollectibleType.Green)
+                obj = greenObstacleBlastEffect;
+            else if (obstacleData.Type == CollectibleType.Blue)
+                obj = blueObstacleBlastEffect;
+
+            obj.transform.position = obstacleData.Position;
+            obj.SetActive(true);
+            StartCoroutine(ResetEffect(obj, 0.5f));
         }
     }
 

@@ -19,7 +19,7 @@ public class Obstacle : Subject
             if (b != null && b.CollectType == obstacleType)
             {
                 gameObject.SetActive(false);
-                NotifyObserver(new ObstacleData() { Position = transform.position });
+                NotifyObserver(new ObstacleData() { Type = obstacleType, Position = transform.position });
             }
         }
     }
