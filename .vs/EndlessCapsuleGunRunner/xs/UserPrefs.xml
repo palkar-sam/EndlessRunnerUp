@@ -1,0 +1,37 @@
+﻿<Properties StartupConfiguration="{AFE5CDB0-E114-F480-0058-93E0AD5F1C20}|">
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="f4ccd7db-11cb-4c4a-a9d7-1ee900fa1a02" />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Data/RunnerInventoryData.cs">
+    <Files>
+      <File FileName="Assets/Scripts/UiManager.cs" Line="51" Column="53" />
+      <File FileName="Assets/Scripts/Data/RunnerInventoryData.cs" Line="55" Column="15" />
+      <File FileName="Assets/Scripts/Views/StartScreen.cs" Line="16" Column="36" />
+      <File FileName="Assets/Scripts/Views/GameOver.cs" Line="32" Column="37" />
+      <File FileName="Assets/Scripts/Data/GameData.cs" Line="8" Column="35" />
+      <File FileName="Assets/Scripts/Player/Player.cs" Line="40" Column="10" />
+      <File FileName="Assets/Scripts/Views/HealthBarView.cs" Line="28" Column="26" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="EndlessCapsuleGunRunner" expanded="True">
+            <Node name="Assets" expanded="True">
+              <Node name="Scripts" expanded="True">
+                <Node name="Data" expanded="True" />
+                <Node name="Player" expanded="True" />
+                <Node name="Road" expanded="True" />
+                <Node name="Views" expanded="True" />
+              </Node>
+            </Node>
+            <Node name="Packages" expanded="True" />
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
