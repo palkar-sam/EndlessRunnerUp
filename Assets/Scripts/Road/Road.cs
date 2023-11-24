@@ -31,7 +31,7 @@ public class Road : Subject, IObserver
         _tracksQueue.Clear();
         for (int i = 0; i < tracks.Count; i++)
         {
-            tracks[i].transform.position = _trackInitialPos[i];
+            tracks[i].ResetTrack(_trackInitialPos[i].z);
         }
     }
 

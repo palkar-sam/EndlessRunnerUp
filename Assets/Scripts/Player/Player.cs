@@ -10,6 +10,7 @@ public class Player : Subject, IObserver
     [SerializeField] private PlayerAttak playerAttack;
     [SerializeField] private Transform startingPoint;
     [SerializeField] private CharacterController controller;
+    [SerializeField] private Animator anim;
     [SerializeField]private float playerSpeed = 2.0f;
     [SerializeField] private float dodgeSpeed = 2.0f;
     [SerializeField] private float distanceCoveredDelay = 1.0f;
@@ -52,30 +53,47 @@ public class Player : Subject, IObserver
         }
     }
 
+    private float _colHeight;
+    private float _colCenterY;
+
     private void Start()
     {
         playerAttack.PlayerSpeed = playerSpeed;
+        _colCenterY = controller.center.y;
+        _colHeight = controller.height;
     }
 
+    private enum Side { Left, Mid, Right}
+
+    private Side _side = Side.Mid;
+    private bool _swipeLeft, _swipeRight, _swipeUp, _swipeDown;
+    private bool InJump;
+    private bool InRoll;
+    public float xValue = 2;
+    private float newXPos = 0;
+    private float moveX = 0;
+    private float moveY = 0;
+    
+    private Vector3 moveVector = Vector3.zero;
     void Update()
     {
         //Debug.Log("_isPlayerDied : " + _isPlayerDied+ " : _isGameOver : "+ _isGameOver);
         if (_isGameOver || _isPlayerDied) return;
 
         groundedPlayer = controller.isGrounded;
-        //Debug.Log("grundedLayer : " + groundedPlayer);
+        Debug.Log("grundedLayer : " + groundedPlayer);
         if (groundedPlayer && playerVelocity.y < 0)
         {
             playerVelocity.y = 0f;
         }
 
-        float moveX = 0;
-        if (groundedPlayer)
+        
+        //if (groundedPlayer)
         {
-            moveX = Input.GetAxis("Horizontal") * dodgeSpeed;
+           // moveX = Input.GetAxis("Horizontal") * dodgeSpeed;
             //moveX = Mathf.Clamp(Input.GetAxis("Horizontal") * dodgeSpeed, -maxXValue, maxXValue);
 
-            Debug.Log("Move Input : "+moveX);
+            //Debug.Log("Move Input : "+moveX);
             //Debug.Log("Touch COunt : "+Input.touchCount);
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
             {
@@ -88,28 +106,63 @@ public class Player : Subject, IObserver
                 if (_endTouchPosition.x < _startTouchPosition.x)
                 {
                     moveX = -1 * dodgeSpeed;
+                    
                 }
                 else if (_endTouchPosition.x > _startTouchPosition.x)
                 {
+                    
                     moveX = 1 * dodgeSpeed;
                 }
             }
+
+            /* if(Input.GetMouseButton(0))
+             {
+                 float center = Screen.width / 2;
+                 float xPos = (Input.mousePosition.x - center) / center;
+                 moveX = Mathf.Clamp(xPos * dodgeSpeed, -dodgeSpeed, dodgeSpeed);
+             }*/
+
+
+
+            _swipeLeft = Input.GetKeyDown(KeyCode.LeftArrow);
+            _swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
+            _swipeUp = Input.GetKeyDown(KeyCode.UpArrow);
+            _swipeDown = Input.GetKeyDown(KeyCode.DownArrow);
+
+            if (_swipeLeft && !InRoll)
+            {
+                if(_side == Side.Mid)
+                {
+                    newXPos = -xValue;
+                    _side = Side.Left;
+                }
+                else if(_side == Side.Right)
+                {
+                    newXPos = 0;
+                    _side = Side.Mid;
+                }
+            }
+            else if(_swipeRight && !InRoll)
+            {
+                if(_side == Side.Mid)
+                {
+                    newXPos = xValue;
+                    _side = Side.Right;
+                }
+                else if(_side == Side.Left)
+                {
+                    newXPos = 0;
+                    _side = Side.Mid;
+                }
+            }
+            moveVector = new Vector3(moveX - transform.position.x, moveY * Time.deltaTime, playerSpeed * Time.deltaTime);
+            moveX = Mathf.Lerp(moveX, newXPos, dodgeSpeed * Time.deltaTime) ;
+            
         }
 
-        Vector3 move = new Vector3(moveX, 0, playerSpeed);
-        controller.Move(move * Time.deltaTime);
-        if (move != Vector3.zero)
-        {
-            gameObject.transform.forward = move;
-        }
-        
-        if (Input.GetButtonDown("Jump") && groundedPlayer)
-        {
-            playerVelocity.y += Mathf.Sqrt(jumpHeight * -2.0f * gravityValue);
-        }
-
-        playerVelocity.y += gravityValue * Time.deltaTime;
-        controller.Move(playerVelocity * Time.deltaTime);
+        controller.Move(moveVector);
+        Jump();
+        Roll();
         
         _currentCoveredTime += Time.deltaTime;
 
@@ -127,9 +180,53 @@ public class Player : Subject, IObserver
         }
     }
 
+    private void Jump()
+    {
+        if(controller.isGrounded)
+        {
+            if (_swipeUp)
+            {
+                moveY = jumpHeight;
+                anim.Play("Jump");
+                InJump = true;
+            }
+        }
+        else
+        {
+            moveY -= jumpHeight * 2 * Time.deltaTime;
+            if (controller.velocity.y < 0.1f)
+                InJump = false;
+        }
+        
+    }
+
+    internal float _rollCounter;
+    private void Roll()
+    {
+        _rollCounter -= Time.deltaTime;
+        if(_rollCounter <= 0.0f)
+        {
+            _rollCounter = 0;
+            controller.center = new Vector3(0,_colCenterY,0);
+            controller.height = _colHeight;
+            InRoll = false;
+        }
+        if (_swipeDown)
+        {
+            _rollCounter = 0.2f;
+            moveY -= 10f;
+            controller.center = new Vector3(0, _colCenterY/2, 0);
+            controller.height = _colHeight/2;
+            anim.Play("Roll");
+            InRoll = true;
+            InJump = false;
+        }
+    }
+
     private void PlayerDied()
     {
         _isPlayerDied = true;
+        anim.Play("Death");
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -138,8 +235,6 @@ public class Player : Subject, IObserver
 
         if (!_isPlayerDied)
         {
-            Rigidbody body = hit.collider.attachedRigidbody;
-
             if (hit.collider.CompareTag("Obstacle"))
             {
 //                Debug.Log("--------- Obstacle Hit --------------");
@@ -154,6 +249,7 @@ public class Player : Subject, IObserver
     {
         _currentCoveredTime = 0;
         yield return new WaitForSeconds(0.3f);
+        anim.Play("Idle");
         transform.position = startingPoint.position;
         yield return new WaitForSeconds(2.0f);
         _isPlayerDied = _isGameOver;
