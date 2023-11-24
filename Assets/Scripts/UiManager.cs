@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class UiManager : Subject, IObserver
 {
-    [SerializeField] Subject roadSubject;
-    [SerializeField] Subject playerSubject;
-    [SerializeField] Subject playerAttackSubject;
+    [SerializeField] private Subject roadSubject;
+    [SerializeField] private Subject playerSubject;
+    [SerializeField] private Subject playerAttackSubject;
     [SerializeField] private BulletInventoryView bulletInventory;
     [SerializeField] private ScoreView playerScore;
     [SerializeField] private HealthBarView playerLife;
