@@ -1,6 +1,7 @@
 using System.Collections;
 using Data;
 using ObserverPattern;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -15,11 +16,15 @@ public class Player : Subject, IObserver
     [SerializeField] private float dodgeSpeed = 2.0f;
     [SerializeField] private float distanceCoveredDelay = 1.0f;
     [SerializeField] private float jumpHeight = 1.0f;
+    [SerializeField] private float swipeDistance = 200.0f;
 
-    private Vector3 playerVelocity;
-    private bool groundedPlayer;
-    
-    private float gravityValue = -9.81f;
+    [Header("Touch Logs Texts")]
+    [SerializeField] private TextMeshProUGUI touchText;
+    [SerializeField] private TextMeshProUGUI xValueText;
+    [SerializeField] private TextMeshProUGUI yValueText;
+    [SerializeField] private TextMeshProUGUI swipeStatusText;
+    [SerializeField] private TextMeshProUGUI RollJumpStatus;
+
     private float _currentCoveredTime;
     private bool _isPlayerDied = true;
     private bool _isGameOver;
@@ -33,11 +38,13 @@ public class Player : Subject, IObserver
         if (data.IsStartNewGame)
         {
             Debug.Log("--------------- Start New Game ------------");
+            RunnerLog.Log("....Start New Game.........");
             controller.enabled = true;
         }
         else if (data.IsGameOver)
         {
             Debug.Log("--------------- GameOver ------------");
+            RunnerLog.Log("......GameOver.......");
         }
 
         _isGameOver = data.IsGameOver;
@@ -73,34 +80,110 @@ public class Player : Subject, IObserver
     private float newXPos = 0;
     private float moveX = 0;
     private float moveY = 0;
-    
+    private float _currentTouchDistance = 0;
+    private bool _isMouseInteraction;
+
     private Vector3 moveVector = Vector3.zero;
     void Update()
     {
         //Debug.Log("_isPlayerDied : " + _isPlayerDied+ " : _isGameOver : "+ _isGameOver);
         if (_isGameOver || _isPlayerDied) return;
 
-        groundedPlayer = controller.isGrounded;
-        Debug.Log("grundedLayer : " + groundedPlayer);
-        
+
+        //Uncomment this line to work on editor with mouse
+       /*if (Input.GetMouseButtonDown(0))
+        {
+            _startTouchPosition = Input.mousePosition;
+            xValueText.text = "Start X : " + Input.mousePosition.x.ToString();
+            yValueText.text = "Start Y : " + Input.mousePosition.y.ToString();
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            _isMouseInteraction = true;
+            _endTouchPosition = Input.mousePosition;
+            xValueText.text = "End X : " + Input.mousePosition.x.ToString();
+            yValueText.text = "End Y : " + Input.mousePosition.y.ToString();
+        }*/
+
+
+
+        touchText.text = "Tocuh Count : " + Input.touchCount.ToString();
         if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
+            RunnerLog.Log("Touch began.............");
+            xValueText.text = "Start X : " + Input.GetTouch(0).position.x.ToString();
+            yValueText.text = "Start Y : " + Input.GetTouch(0).position.y.ToString();
             _startTouchPosition = Input.GetTouch(0).position;
+            
         }
 
         if(Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
         {
+            RunnerLog.Log("Touch End.............");
+            xValueText.text = "End X : " + Input.GetTouch(0).position.x.ToString();
+            yValueText.text = "End Y : " + Input.GetTouch(0).position.y.ToString();
             _endTouchPosition = Input.GetTouch(0).position;
-            if (_endTouchPosition.x < _startTouchPosition.x)
-                _swipeLeft = true;
-            else if (_endTouchPosition.x > _startTouchPosition.x)
-                _swipeRight = true;
+            _isMouseInteraction = true;
 
-            if (_endTouchPosition.y > _startTouchPosition.y)
-                _swipeUp = true;
-            if (_endTouchPosition.y < _startTouchPosition.y)
-                _swipeDown = true;
+            RunnerLog.Log("Touch End.....Swipe left......"+_swipeLeft +" : Right"+ _swipeRight);
+            
         }
+
+        if(_isMouseInteraction)
+        {
+            _isMouseInteraction = false;
+            
+            if (_endTouchPosition.x < _startTouchPosition.x)
+            {
+                _swipeLeft = false;
+                _swipeRight = false;
+                _currentTouchDistance = _startTouchPosition.x - _endTouchPosition.x;
+                if (_currentTouchDistance > swipeDistance)
+                {
+                    _swipeLeft = true;
+                    _swipeRight = false;
+                }
+            }
+            else if (_endTouchPosition.x > _startTouchPosition.x)
+            {
+                _swipeLeft = false;
+                _swipeRight = false;
+                _currentTouchDistance = _endTouchPosition.x - _startTouchPosition.x;
+                if (_currentTouchDistance > swipeDistance)
+                {
+                    _swipeLeft = false;
+                    _swipeRight = true;
+                }
+            }
+
+            if (_endTouchPosition.y > _startTouchPosition.y && !_swipeLeft && !_swipeRight)
+            {
+                _swipeUp = false;
+                _swipeDown = false;
+                _currentTouchDistance = _endTouchPosition.y - _startTouchPosition.y;
+                if (_currentTouchDistance > swipeDistance)
+                {
+                    
+                    _swipeUp = true;
+                    _swipeDown = false;
+                }
+            }
+            if (_endTouchPosition.y < _startTouchPosition.y && !_swipeLeft && !_swipeRight)
+            {
+                _swipeUp = false;
+                _swipeDown = false;
+                _currentTouchDistance = _startTouchPosition.y - _endTouchPosition.y;
+                if (_currentTouchDistance > swipeDistance)
+                {
+                    _swipeUp = false;
+                    _swipeDown = true;
+                }
+            }
+        }
+
+        if (_swipeDown || _swipeLeft || _swipeRight || _swipeUp)
+            swipeStatusText.text = $"Left : {_swipeLeft} : Right : {_swipeRight} : Up : {_swipeUp} : Down : {_swipeDown}";
 
         /* if(Input.GetMouseButton(0))
             {
@@ -109,13 +192,21 @@ public class Player : Subject, IObserver
                 moveX = Mathf.Clamp(xPos * dodgeSpeed, -dodgeSpeed, dodgeSpeed);
             }*/
 
-        _swipeLeft = Input.GetKeyDown(KeyCode.LeftArrow);
-        _swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
-        _swipeUp = Input.GetKeyDown(KeyCode.UpArrow);
-        _swipeDown = Input.GetKeyDown(KeyCode.DownArrow);
+        //Uncomment this 4 lines to run with arrow keys.
+        //_swipeLeft = Input.GetKeyDown(KeyCode.LeftArrow);
+        //_swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
+        //_swipeUp = Input.GetKeyDown(KeyCode.UpArrow);
+        //_swipeDown = Input.GetKeyDown(KeyCode.DownArrow);
+
+        if (_swipeDown || _swipeLeft || _swipeRight || _swipeUp)
+            swipeStatusText.text = $"Left : {_swipeLeft} : Right : {_swipeRight} : Up : {_swipeUp} : Down : {_swipeDown}";
+
+        if (InRoll || InJump)
+            RollJumpStatus.text = $"Jump : {InJump} : Roll : {InRoll}";
 
         if (_swipeLeft && !InRoll)
         {
+            RunnerLog.Log("Left Arrow");
             if(_side == Side.Mid)
             {
                 newXPos = -xValue;
@@ -125,11 +216,13 @@ public class Player : Subject, IObserver
             {
                 newXPos = 0;
                 _side = Side.Mid;
+                _swipeLeft = false;
             }
         }
         else if(_swipeRight && !InRoll)
         {
-            if(_side == Side.Mid)
+            RunnerLog.Log("Right Arrow");
+            if (_side == Side.Mid)
             {
                 newXPos = xValue;
                 _side = Side.Right;
@@ -138,6 +231,7 @@ public class Player : Subject, IObserver
             {
                 newXPos = 0;
                 _side = Side.Mid;
+                _swipeRight = false;
             }
         }
         moveVector = new Vector3(moveX - transform.position.x, moveY * Time.deltaTime, playerSpeed * Time.deltaTime);
@@ -177,6 +271,7 @@ public class Player : Subject, IObserver
         else
         {
             moveY -= jumpHeight * 2 * Time.deltaTime;
+            _swipeUp = false;
             if (controller.velocity.y < 0.1f)
                 InJump = false;
         }
@@ -198,6 +293,7 @@ public class Player : Subject, IObserver
         {
             _rollCounter = 0.2f;
             moveY -= 10f;
+            _swipeDown = false;
             controller.center = new Vector3(0, _colCenterY/2, 0);
             controller.height = _colHeight/2;
             anim.Play("Roll");

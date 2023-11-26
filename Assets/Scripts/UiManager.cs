@@ -12,7 +12,7 @@ public class UiManager : Subject, IObserver
     [SerializeField] private HealthBarView playerLife;
     [SerializeField] private GameOver gameOver;
     [SerializeField] private StartScreen startScreen;
-    [SerializeField] private RunnerLog runnerLog;
+    //[SerializeField] private RunnerLog runnerLog;
     [SerializeField] private LeaderBoardScreen leaderBoardScreen;
     [SerializeField] private GameObject leaderBoardButton;
 
@@ -22,7 +22,6 @@ public class UiManager : Subject, IObserver
     {
         startScreen.OnStartGame += OnStartGame;
         gameOver.OnRestartGame += OnRestartGame;
-        //runnerLog.OnShowLog += OnShowLog;
         RunnerInventoryData.GetInstance().SetLeaderBoardData();
     }
 
